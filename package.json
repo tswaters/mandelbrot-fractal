@@ -4,9 +4,33 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint --ext=mjs .",
+    "format": "prettier -w .",
+    "start": "http-server src"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.3.0",
+    "eslint-config-prettier": "^8.3.0",
+    "http-server": "^14.0.0",
+    "prettier": "^2.4.1"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "env": {
+      "browser": true
+    },
+    "rules": {
+      "no-unused-vars": "warn"
+    },
+    "extends": [
+      "eslint:recommended",
+      "eslint-config-prettier"
+    ]
+  }
 }
