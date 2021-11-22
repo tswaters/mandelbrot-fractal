@@ -11,14 +11,17 @@ let ctx;
 let width;
 let height;
 
+const DEBUG = false;
 const mandelbrotx = [-2.0, 2.0];
 const mandelbroty = [-2.0, 2.0];
 
 const doWork = (x0, y0, sw, sh) => {
   const worker = new Worker("./fractal-worker.mjs");
   const imgData = ctx.getImageData(x0, y0, sw, sh);
-  var id = `{${x0}, ${y0}} - ${sw}x${sh}`; // var by design, hoist
-  console.time(id);
+  if (DEBUG) {
+    var id = `{${x0}, ${y0}} - ${sw}x${sh}`; // var by design, hoist
+    console.time(id);
+  }
 
   worker.postMessage(
     {
@@ -38,7 +41,7 @@ const doWork = (x0, y0, sw, sh) => {
   return new Promise((resolve) => {
     worker.onmessage = ({ data }) => {
       worker.terminate();
-      console.timeEnd(id);
+      if (DEBUG) console.timeEnd(id);
       resolve({
         data: new ImageData(new Uint8ClampedArray(data), sw, sh),
         x: x0,
