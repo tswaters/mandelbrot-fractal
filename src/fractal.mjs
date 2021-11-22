@@ -13,50 +13,54 @@ let height;
 
 const mandelbrotx = [-2.0, 2.0];
 const mandelbroty = [-2.0, 2.0];
-const MAX_ITERATIONS = 1000;
 
-const scale = ([r0, r1], value, total) => value * ((r1 - r0) / total);
+const doWork = (x0, y0, sw, sh) => {
+  const worker = new Worker("./fractal-worker.mjs");
+  const imgData = ctx.getImageData(x0, y0, sw, sh);
+  var id = `{${x0}, ${y0}} - ${sw}x${sh}`; // var by design, hoist
+  console.time(id);
 
-const calculate = (width, height, px, py) => {
-  let x0 = scale(mandelbrotx, px - width / 2, width);
-  let y0 = scale(mandelbroty, py - height / 2, width);
-  let x = 0;
-  let y = 0;
-  let iteration = 0;
+  worker.postMessage(
+    {
+      pixels: imgData.data.buffer,
+      scalex: mandelbrotx,
+      scaley: mandelbroty,
+      sw,
+      sh,
+      width,
+      height,
+      px: x0,
+      py: y0,
+    },
+    [imgData.data.buffer]
+  );
 
-  while (x * x + y * y <= 4 && iteration < MAX_ITERATIONS) {
-    var x_new = x * x - y * y + x0;
-    y = 2 * x * y + y0;
-    x = x_new;
-    iteration++;
-  }
-
-  return iteration;
-};
-
-const updateWidth = () => {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
+  worker.onmessage = ({ data }) => {
+    ctx.putImageData(
+      new ImageData(new Uint8ClampedArray(data), sw, sh),
+      x0,
+      y0
+    );
+    worker.terminate();
+    console.timeEnd(id);
+  };
 };
 
 const redraw = () => {
-  updateWidth();
-  ctx.clearRect(0, 0, width, height);
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
 
-  const canvasData = ctx.createImageData(width, height);
-  for (let x = 0; x < width; x += 1) {
-    for (let y = 0; y < height; y += 1) {
-      const index = (x + y * width) * 4;
-      const iteration = calculate(width, height, x, y);
-      const r = iteration === MAX_ITERATIONS ? 255 : 0;
-      canvasData.data[index + 0] = r;
-      canvasData.data[index + 1] = r;
-      canvasData.data[index + 2] = r;
-      canvasData.data[index + 3] = 255;
-    }
-  }
+  const w2 = Math.ceil(width / 4);
+  const h2 = Math.ceil(height / 2);
 
-  ctx.putImageData(canvasData, 0, 0);
+  doWork(w2 * 0, 0, w2, h2);
+  doWork(w2 * 0, h2, w2, h2);
+  doWork(w2 * 1, 0, w2, h2);
+  doWork(w2 * 1, h2, w2, h2);
+  doWork(w2 * 2, 0, w2, h2);
+  doWork(w2 * 2, h2, w2, h2);
+  doWork(w2 * 3, 0, w2, h2);
+  doWork(w2 * 3, h2, w2, h2);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
