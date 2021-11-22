@@ -32,7 +32,7 @@ const doWork = (x0, y0, sw, sh) => {
   if (DEBUG) console.time(id);
 
   return new Promise((resolve) => {
-    const worker = new Worker("./fractal-worker.mjs");
+    const worker = new Worker("./fractal-worker.mjs", { type: "module" });
     const imgData = ctx.getImageData(x0, y0, sw, sh);
 
     worker.postMessage(

@@ -2,9 +2,9 @@
 
 // escape time algo
 
-const MAX_ITERATIONS = 500;
+import { scale } from "./util.mjs";
 
-const scale = ([r0, r1], value, total) => value * ((r1 - r0) / total);
+const MAX_ITERATIONS = 500;
 
 self.addEventListener("message", function (event) {
   const { scalex, scaley, px, py, sh, sw, width, height } = event.data;
