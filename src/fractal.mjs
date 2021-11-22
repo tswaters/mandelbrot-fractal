@@ -28,10 +28,9 @@ const chunkWork = (width, height, xslice, yslice, cb) => {
 };
 
 const doWork = (x0, y0, sw, sh) => {
-  if (DEBUG) {
-    var id = `{${x0}, ${y0}} - ${sw}x${sh}`; // var by design, hoist
-    console.time(id);
-  }
+  const id = `{${x0}, ${y0}} - ${sw}x${sh}`;
+  if (DEBUG) console.time(id);
+
   return new Promise((resolve) => {
     const worker = new Worker("./fractal-worker.mjs");
     const imgData = ctx.getImageData(x0, y0, sw, sh);
