@@ -35,15 +35,17 @@ const doWork = (x0, y0, sw, sh) => {
     [imgData.data.buffer]
   );
 
-  worker.onmessage = ({ data }) => {
-    ctx.putImageData(
-      new ImageData(new Uint8ClampedArray(data), sw, sh),
-      x0,
-      y0
-    );
-    worker.terminate();
-    console.timeEnd(id);
-  };
+  return new Promise((resolve) => {
+    worker.onmessage = ({ data }) => {
+      worker.terminate();
+      console.timeEnd(id);
+      resolve({
+        data: new ImageData(new Uint8ClampedArray(data), sw, sh),
+        x: x0,
+        y: y0,
+      });
+    };
+  });
 };
 
 const redraw = () => {
@@ -51,16 +53,30 @@ const redraw = () => {
   height = canvas.height = window.innerHeight;
 
   const w2 = Math.ceil(width / 4);
-  const h2 = Math.ceil(height / 2);
+  const h2 = Math.ceil(height / 4);
 
-  doWork(w2 * 0, 0, w2, h2);
-  doWork(w2 * 0, h2, w2, h2);
-  doWork(w2 * 1, 0, w2, h2);
-  doWork(w2 * 1, h2, w2, h2);
-  doWork(w2 * 2, 0, w2, h2);
-  doWork(w2 * 2, h2, w2, h2);
-  doWork(w2 * 3, 0, w2, h2);
-  doWork(w2 * 3, h2, w2, h2);
+  Promise.all([
+    doWork(w2 * 0, h2 * 0, w2, h2),
+    doWork(w2 * 0, h2 * 1, w2, h2),
+    doWork(w2 * 0, h2 * 2, w2, h2),
+    doWork(w2 * 0, h2 * 3, w2, h2),
+    doWork(w2 * 1, h2 * 0, w2, h2),
+    doWork(w2 * 1, h2 * 1, w2, h2),
+    doWork(w2 * 1, h2 * 2, w2, h2),
+    doWork(w2 * 1, h2 * 3, w2, h2),
+    doWork(w2 * 2, h2 * 0, w2, h2),
+    doWork(w2 * 2, h2 * 1, w2, h2),
+    doWork(w2 * 2, h2 * 2, w2, h2),
+    doWork(w2 * 2, h2 * 3, w2, h2),
+    doWork(w2 * 3, h2 * 0, w2, h2),
+    doWork(w2 * 3, h2 * 1, w2, h2),
+    doWork(w2 * 3, h2 * 2, w2, h2),
+    doWork(w2 * 3, h2 * 3, w2, h2),
+  ])
+    .then((work) =>
+      work.forEach((item) => ctx.putImageData(item.data, item.x, item.y))
+    )
+    .catch((err) => console.error({ err }, "oopsie"));
 };
 
 document.addEventListener("DOMContentLoaded", () => {
