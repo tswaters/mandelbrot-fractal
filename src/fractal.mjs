@@ -16,29 +16,29 @@ const mandelbrotx = [-2.0, 2.0];
 const mandelbroty = [-2.0, 2.0];
 
 const doWork = (x0, y0, sw, sh) => {
-  const worker = new Worker("./fractal-worker.mjs");
-  const imgData = ctx.getImageData(x0, y0, sw, sh);
   if (DEBUG) {
     var id = `{${x0}, ${y0}} - ${sw}x${sh}`; // var by design, hoist
     console.time(id);
   }
-
-  worker.postMessage(
-    {
-      pixels: imgData.data.buffer,
-      scalex: mandelbrotx,
-      scaley: mandelbroty,
-      sw,
-      sh,
-      width,
-      height,
-      px: x0,
-      py: y0,
-    },
-    [imgData.data.buffer]
-  );
-
   return new Promise((resolve) => {
+    const worker = new Worker("./fractal-worker.mjs");
+    const imgData = ctx.getImageData(x0, y0, sw, sh);
+
+    worker.postMessage(
+      {
+        pixels: imgData.data.buffer,
+        scalex: mandelbrotx,
+        scaley: mandelbroty,
+        sw,
+        sh,
+        width,
+        height,
+        px: x0,
+        py: y0,
+      },
+      [imgData.data.buffer]
+    );
+
     worker.onmessage = ({ data }) => {
       worker.terminate();
       if (DEBUG) console.timeEnd(id);
