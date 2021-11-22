@@ -15,6 +15,18 @@ const DEBUG = false;
 const mandelbrotx = [-2.0, 2.0];
 const mandelbroty = [-2.0, 2.0];
 
+const chunkWork = (width, height, xslice, yslice, cb) => {
+  const cw = Math.ceil(width / xslice);
+  const ch = Math.ceil(height / yslice);
+  const promises = [];
+  for (let i = 0; i < xslice; i += 1) {
+    for (let j = 0; j < yslice; j += 1) {
+      promises.push(cb(cw * i, ch * j, cw, ch));
+    }
+  }
+  return Promise.all(promises);
+};
+
 const doWork = (x0, y0, sw, sh) => {
   if (DEBUG) {
     var id = `{${x0}, ${y0}} - ${sw}x${sh}`; // var by design, hoist
@@ -55,27 +67,7 @@ const redraw = () => {
   width = canvas.width = window.innerWidth;
   height = canvas.height = window.innerHeight;
 
-  const w2 = Math.ceil(width / 4);
-  const h2 = Math.ceil(height / 4);
-
-  Promise.all([
-    doWork(w2 * 0, h2 * 0, w2, h2),
-    doWork(w2 * 0, h2 * 1, w2, h2),
-    doWork(w2 * 0, h2 * 2, w2, h2),
-    doWork(w2 * 0, h2 * 3, w2, h2),
-    doWork(w2 * 1, h2 * 0, w2, h2),
-    doWork(w2 * 1, h2 * 1, w2, h2),
-    doWork(w2 * 1, h2 * 2, w2, h2),
-    doWork(w2 * 1, h2 * 3, w2, h2),
-    doWork(w2 * 2, h2 * 0, w2, h2),
-    doWork(w2 * 2, h2 * 1, w2, h2),
-    doWork(w2 * 2, h2 * 2, w2, h2),
-    doWork(w2 * 2, h2 * 3, w2, h2),
-    doWork(w2 * 3, h2 * 0, w2, h2),
-    doWork(w2 * 3, h2 * 1, w2, h2),
-    doWork(w2 * 3, h2 * 2, w2, h2),
-    doWork(w2 * 3, h2 * 3, w2, h2),
-  ])
+  chunkWork(width, height, 4, 4, doWork)
     .then((work) =>
       work.forEach((item) => ctx.putImageData(item.data, item.x, item.y))
     )
